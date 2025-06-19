@@ -57,7 +57,7 @@ def generate_svg(data, theme="light"):
     start_date = end_date - timedelta(days=364)
     # Align start_date to the previous Sunday
     start_date -= timedelta(days=(start_date.weekday() + 1) % 7)
-    
+
     # Colors for different themes
     colors = {
         "light": {
@@ -73,9 +73,9 @@ def generate_svg(data, theme="light"):
             "text": "#7d8590"
         }
     }
-    
+
     theme_colors = colors.get(theme, colors["light"])
-    
+
     # Generate day rectangles and collect month start positions
     rectangles = []
     month_labels = []
@@ -84,19 +84,38 @@ def generate_svg(data, theme="light"):
     day_of_week = current_date.weekday()
     last_month = None
     month_positions = {}
-    
+
     # Start from the beginning of the week
     if day_of_week != 6:  # If not Sunday
         week = -1
-    
+
+    # Count weeks for centering
+    week_count = 0
+    temp_date = start_date
+    temp_week = week
+    while temp_date <= end_date:
+        if temp_date.weekday() == 6:
+            temp_week += 1
+        temp_date += timedelta(days=1)
+    week_count = temp_week + 1
+
+    plot_width = week_count * 13
+    plot_x_offset = (760 - plot_width) // 2
+
+    # Now generate the actual rectangles and month positions
+    current_date = start_date
+    week = 0
+    day_of_week = current_date.weekday()
+    if day_of_week != 6:
+        week = -1
+
     while current_date <= end_date:
         date_str = current_date.strftime('%Y-%m-%d')
         minutes = data.get(date_str, 0)
         level = minutes_to_level(minutes)
-        x = (week + 1) * 13
+        x = plot_x_offset + (week + 1) * 13
         y = ((current_date.weekday() + 1) % 7) * 13
-        rect = f'<rect x="{x}" y="{y}" width="11" height="11" rx="2" fill="{theme_colors["levels"][level]}">' \
-               f'<title>{date_str}: {minutes:.0f} minutes of GPU activity</title></rect>'
+        rect = f'<rect x="{x}" y="{y}" width="11" height="11" rx="2" fill="{theme_colors["levels"][level]}"><title>{date_str}: {minutes:.0f} minutes of GPU activity</title></rect>'
         rectangles.append(rect)
         # Month label logic: label the first week of each month
         if (current_date.day <= 7) and (current_date.month != last_month):
@@ -114,7 +133,7 @@ def generate_svg(data, theme="light"):
     day_labels_svg = ''
     for label, idx in day_labels:
         y = idx * 13 + 11  # 11 centers the label in the square
-        day_labels_svg += f'<text x="0" y="{y}" fill="{theme_colors["text"]}" font-size="10" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif">{label}</text>'
+        day_labels_svg += f'<text x="{plot_x_offset - 10}" y="{y}" fill="{theme_colors["text"]}" font-size="10" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif">{label}</text>'
     # Calculate stats
     total_days = len([m for m in data.values() if m > 0])
     total_hours = sum(data.values()) / 60
@@ -137,7 +156,7 @@ def generate_svg(data, theme="light"):
         {day_labels_svg}
         {''.join(rectangles)}
     </g>
-    <text x="0" y="130" fill="{theme_colors["text"]}" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif" font-size="11">
+    <text x="{plot_x_offset}" y="130" fill="{theme_colors["text"]}" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif" font-size="11">
         {total_days} active days | {streak} day streak | {total_hours:.0f} total hours
     </text>
 </svg>'''
