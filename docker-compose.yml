@@ -1,0 +1,27 @@
+services:
+  collector:
+    build: ./collector
+    image: gpu-brrrometer-collector:latest
+    container_name: gpu-brrrometer-collector
+    volumes:
+      - /var/lib/gpu-brrrometer:/var/lib/gpu-brrrometer
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  api:
+    build: ./api
+    image: gpu-brrrometer-api:latest
+    container_name: gpu-brrrometer-api
+    ports:
+      - "8081:8080"
+    volumes:
+      - /var/lib/gpu-brrrometer:/var/lib/gpu-brrrometer
+    depends_on:
+      - collector
+    restart: unless-stopped
