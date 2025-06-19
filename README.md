@@ -1,7 +1,6 @@
 # GPU-Brrrometer
 
-A containerized service that runs on your GPU rig to monitor GPU utilization and generate a GitHub-style contribution graph.
-
+A containerized service that runs on your GPU rig to monitor GPU utilization (i.e. how much your GPU goes *brrr*) and generate a GitHub-style contribution graph.
 
 ## Setup
 
