@@ -2,6 +2,8 @@
 
 A containerized service that runs on your GPU rig to monitor GPU utilization (i.e. how much your GPU goes *brrr*) and generate a GitHub-style contribution graph.
 
+![GPU Activity](./gpu-activity.svg)
+
 ## Setup
 
 ### Prerequisites

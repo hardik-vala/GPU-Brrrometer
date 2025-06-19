@@ -1,0 +1,35 @@
+name: Update GPU Activity SVG
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'  # every 12 hours
+  workflow_dispatch:
+
+jobs:
+  update-svg:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # Required for Tailscale OIDC
+      contents: write  # To commit to the repo
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:gpu-brrrometer-github-actions
+          use-cache: 'true'  # Optional: speeds up repeated runs
+
+      - name: Fetch SVG from API server
+        run: |
+          curl -sSL 'http://scale-1:8081/gpu-activity.svg?theme=dark' -o gpu-activity.svg
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add gpu-activity.svg
+          git diff --cached --quiet || git commit -m "Update GPU activity SVG"
+          git push
