@@ -86,12 +86,27 @@ curl http://localhost:8080/gpu-activity.svg
 curl http://localhost:8080/gpu-activity.svg?theme=dark&weeks=26
 ```
 
-#### GitHub Profile Integration
+### GitHub Actions: Automatic SVG Caching
 
-Add this to your GitHub profile README.md:
+This project includes a GitHub Actions workflow (`.github/workflows/update-svg.yml`) that automatically fetches the latest GPU activity SVG from your API server and commits it to the repository. This ensures your GitHub profile or README can always display the latest activity graph, even if your server is offline.
+
+**How it works:**
+- The workflow runs every 12 hours (and can also be triggered manually).
+- It connects to your private network using Tailscale (via the Tailscale GitHub Action).
+- It fetches the SVG from your API server (e.g., `http://scale-1:8081/gpu-activity.svg?theme=dark`).
+- If the SVG has changed, it commits and pushes the update to the repository.
+
+**Setup:**
+1. Create a Tailscale OAuth client in your Tailscale admin console.
+2. Add the OAuth client ID and secret as GitHub repository secrets named `TS_OAUTH_CLIENT_ID` and `TS_OAUTH_SECRET`.
+3. Ensure your Tailscale ACLs allow the tag used by the workflow (e.g., `tag:gpu-brrrometer-github-actions`) to access your API server.
+4. The workflow is defined in `.github/workflows/update-svg.yml` and requires no further configuration unless you want to change the fetch URL or schedule.
+
+You can reference the local `gpu-activity.svg` in your README or GitHub profile for a reliable, always-available activity graph.
+
 
 ```markdown
-![GPU Activity](http://your-server:8081/gpu-activity.svg)
+![GPU Activity](gpu-activity.svg)
 ```
 
 ### Data Persistence
